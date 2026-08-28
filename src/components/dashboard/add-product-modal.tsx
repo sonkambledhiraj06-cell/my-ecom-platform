@@ -11,10 +11,13 @@ interface AddProductModalProps {
     id: string;
     name: string;
     sku: string;
-    category: string;
-    price: number;
-    cogs: number;
-    stock: number;
+    category: string | null;
+    price?: number | string | null;
+    cogs?: number | string | null;
+    stock?: number | string | null;
+    selling_price?: number | string | null;
+    cost_cogs?: number | string | null;
+    stock_level?: number | string | null;
   };
 }
 
@@ -26,9 +29,9 @@ export default function AddProductModal({
   const [name, setName] = useState(product?.name ?? "");
   const [sku, setSku] = useState(product?.sku ?? "");
   const [category, setCategory] = useState(product?.category ?? "");
-  const [price, setPrice] = useState(product ? String(product.price) : "");
-  const [cogs, setCogs] = useState(product ? String(product.cogs) : "");
-  const [stock, setStock] = useState(product ? String(product.stock) : "");
+  const [price, setPrice] = useState(product ? String(product.selling_price ?? product.price ?? "") : "");
+  const [cogs, setCogs] = useState(product ? String(product.cost_cogs ?? product.cogs ?? "") : "");
+  const [stock, setStock] = useState(product ? String(product.stock_level ?? product.stock ?? "") : "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,13 +42,20 @@ export default function AddProductModal({
 
     try {
       const supabase = createClient();
+      const parsedPrice = Number.parseFloat(price);
+      const parsedCogs = Number.parseFloat(cogs);
+      const parsedStock = Number.parseInt(stock, 10);
+      if (!Number.isFinite(parsedPrice) || !Number.isFinite(parsedCogs) || !Number.isFinite(parsedStock)) {
+        setError("Enter valid price, COGS, and stock values.");
+        return;
+      }
       const productData = {
         name,
         sku,
         category: category.trim() || null,
-        selling_price: parseFloat(price),
-        cost_cogs: parseFloat(cogs),
-        stock_level: parseInt(stock, 10),
+        selling_price: parsedPrice,
+        cost_cogs: parsedCogs,
+        stock_level: parsedStock,
       };
       const { error: insertError } = product
         ? await supabase.from("products").update(productData).eq("id", product.id)

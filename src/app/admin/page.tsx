@@ -30,20 +30,24 @@ export default function AdvancedAdminPanel() {
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const supabase = createClient();
-    const [{ data: profilesData, error: profilesError }, { count, error: productsError }] =
-      await Promise.all([
-        supabase.from("profiles").select("id, full_name, role, is_banned"),
-        supabase.from("products").select("*", { count: "exact", head: true }),
-      ]);
+    try {
+      const supabase = createClient();
+      const [{ data: profilesData, error: profilesError }, { count, error: productsError }] =
+        await Promise.all([
+          supabase.from("profiles").select("id, full_name, role, is_banned"),
+          supabase.from("products").select("*", { count: "exact", head: true }),
+        ]);
 
-    if (profilesError || productsError) {
-      setError(profilesError?.message ?? productsError?.message ?? "Unable to load admin data");
-    } else {
+      if (profilesError || productsError) {
+        throw new Error(profilesError?.message ?? productsError?.message ?? "Unable to load admin data");
+      }
       setUsers((profilesData ?? []) as UserProfile[]);
       setProductCount(count ?? 0);
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : "Unable to load admin data");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -59,19 +63,20 @@ export default function AdvancedAdminPanel() {
 
   const updateUserRole = async (user: UserProfile, newRole: string) => {
     setUpdatingUserId(user.id);
-    const supabase = createClient();
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ role: newRole })
-      .eq("id", user.id);
-
-    if (updateError) {
-      setError(`Error updating role: ${updateError.message}`);
-    } else {
+    try {
+      const supabase = createClient();
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ role: newRole })
+        .eq("id", user.id);
+      if (updateError) throw updateError;
       addLog(`Changed user ${user.id.slice(0, 8)}... role to ${newRole}`);
       await fetchDashboardData();
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : "Error updating role");
+    } finally {
+      setUpdatingUserId(null);
     }
-    setUpdatingUserId(null);
   };
 
   const addRole = async (user: UserProfile) => {
@@ -87,19 +92,20 @@ export default function AdvancedAdminPanel() {
   const toggleBan = async (user: UserProfile) => {
     setUpdatingUserId(user.id);
     const nextBanState = !user.is_banned;
-    const supabase = createClient();
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ is_banned: nextBanState })
-      .eq("id", user.id);
-
-    if (updateError) {
-      setError(`Error changing ban status: ${updateError.message}`);
-    } else {
+    try {
+      const supabase = createClient();
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ is_banned: nextBanState })
+        .eq("id", user.id);
+      if (updateError) throw updateError;
       addLog(`${nextBanState ? "Banned" : "Unbanned"} user ${user.id.slice(0, 8)}...`);
       await fetchDashboardData();
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : "Error changing ban status");
+    } finally {
+      setUpdatingUserId(null);
     }
-    setUpdatingUserId(null);
   };
 
   const query = searchQuery.toLowerCase();

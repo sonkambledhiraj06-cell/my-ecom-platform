@@ -11,12 +11,20 @@ interface Product {
   id: string;
   name: string;
   sku: string;
-  category: string;
-  price: number;
-  cogs: number;
-  stock: number;
-  low_stock: number;
+  category: string | null;
+  selling_price?: number | string | null;
+  cost_cogs?: number | string | null;
+  stock_level?: number | string | null;
+  price?: number | string | null;
+  cogs?: number | string | null;
+  stock?: number | string | null;
+  low_stock?: number | string | null;
 }
+
+const productPrice = (product: Product) => Number(product.selling_price ?? product.price ?? 0);
+const productCogs = (product: Product) => Number(product.cost_cogs ?? product.cogs ?? 0);
+const productStock = (product: Product) => Number(product.stock_level ?? product.stock ?? 0);
+const productLowStock = (product: Product) => Number(product.low_stock ?? 5);
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -77,19 +85,20 @@ export default function ProductsPage() {
     if (!confirmDelete) return;
 
     setDeletingProductId(id);
-    const productClient = createClient();
-    const { error: deleteError } = await productClient
-      .from("products")
-      .delete()
-      .eq("id", id);
+    try {
+      const productClient = createClient();
+      const { error: deleteError } = await productClient
+        .from("products")
+        .delete()
+        .eq("id", id);
 
-    if (deleteError) {
-      setError(`Unable to delete product: ${deleteError.message}`);
-    } else {
+      if (deleteError) throw deleteError;
       await fetchProducts();
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : "Unable to delete product");
+    } finally {
+      setDeletingProductId(null);
     }
-
-    setDeletingProductId(null);
   };
 
   const filteredProducts = products.filter(
@@ -100,7 +109,7 @@ export default function ProductsPage() {
       ),
   );
   const categories = Array.from(
-    new Set(products.map((product) => product.category).filter(Boolean)),
+    new Set(products.map((product) => product.category).filter((category): category is string => Boolean(category))),
   );
 
   return (
@@ -131,7 +140,7 @@ export default function ProductsPage() {
         />
         <SummaryCard
           label="Low Stock Alerts"
-          value={`${products.filter((product) => product.stock <= product.low_stock).length} Item`}
+          value={`${products.filter((product) => productStock(product) <= productLowStock(product)).length} Item`}
           valueClassName="text-amber-600"
           icon={<AlertTriangle size={22} />}
           iconClassName="bg-amber-50 text-amber-600"
@@ -206,8 +215,11 @@ export default function ProductsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredProducts.map((item) => {
-                const profit = item.price - item.cogs;
-                const isLowStock = item.stock <= item.low_stock;
+                const price = productPrice(item);
+                const cogs = productCogs(item);
+                const stock = productStock(item);
+                const profit = price - cogs;
+                const isLowStock = stock <= productLowStock(item);
 
                 return (
                   <tr key={item.id} className="transition hover:bg-gray-50">
@@ -217,17 +229,17 @@ export default function ProductsPage() {
                         SKU: {item.sku}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900">₹{item.price}</td>
-                    <td className="px-5 py-4 text-gray-600">₹{item.cogs}</td>
+                    <td className="px-5 py-4 font-medium text-gray-900">₹{price}</td>
+                    <td className="px-5 py-4 text-gray-600">₹{cogs}</td>
                     <td className="px-5 py-4 font-medium text-emerald-600">+₹{profit}</td>
                     <td className="px-5 py-4">
                       {isLowStock ? (
                         <span className="flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
-                          <AlertTriangle size={12} /> {item.stock} left (Low)
+                          <AlertTriangle size={12} /> {stock} left (Low)
                         </span>
                       ) : (
                         <span className="w-fit rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">
-                          {item.stock} in stock
+                          {stock} in stock
                         </span>
                       )}
                     </td>

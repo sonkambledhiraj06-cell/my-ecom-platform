@@ -1,0 +1,9 @@
+{
+  "name": "test-import-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:pipeline": "tsx scripts/test-pipeline.ts"
+  }
+}

@@ -4,7 +4,7 @@ const getValidUrl = (url?: string) => {
 	if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
 		return url;
 	}
-	return 'https://placeholder.supabase.co';
+	return 'https://placeholder-project.supabase.co';
 };
 
 const supabaseUrl = getValidUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);

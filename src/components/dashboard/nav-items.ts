@@ -5,6 +5,10 @@ import {
   MessageCircle,
   Package,
   Truck,
+  Sparkles,
+  Video,
+  Brain,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -15,14 +19,13 @@ export type NavItem = {
 };
 
 export const dashboardNav: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard Overview", icon: LayoutDashboard },
+  { href: "/dashboard", label: "AI Command Center", icon: LayoutDashboard },
   { href: "/dashboard/products", label: "Products & Inventory", icon: Package },
   { href: "/dashboard/orders", label: "Orders & Tracking", icon: Truck },
-  { href: "/dashboard/ads", label: "Ads Automation", icon: Megaphone },
+  { href: "/dashboard/marketing", label: "AI Marketing Engine", icon: Megaphone },
+  { href: "/dashboard/content", label: "AI Content & Video", icon: Sparkles },
+  { href: "/dashboard/analytics", label: "AI Analytics", icon: BarChart3 },
+  { href: "/dashboard/automation", label: "Automation", icon: Zap },
   { href: "/dashboard/whatsapp", label: "WhatsApp CRM", icon: MessageCircle },
-  {
-    href: "/dashboard/analytics",
-    label: "Net Profit Analytics",
-    icon: BarChart3,
-  },
+  { href: "/dashboard/ai-brain", label: "AID Brain", icon: Brain },
 ];

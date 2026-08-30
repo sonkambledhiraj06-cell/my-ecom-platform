@@ -2,10 +2,11 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Loader2, Package, Plus, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, Loader2, Package, Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/client";
 import AddProductModal from "@/components/dashboard/add-product-modal";
+import ManualPosEntryModal from "@/components/dashboard/manual-pos-entry-modal";
 
 interface Product {
   id: string;
@@ -38,6 +39,8 @@ export default function ProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  const [isPosModalOpen, setIsPosModalOpen] = useState(false);
+  const [posInitialProduct, setPosInitialProduct] = useState<Product | null>(null);
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -121,13 +124,25 @@ export default function ProductsPage() {
             Live database records from Supabase, COGS tracking, and low stock alerts.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
-        >
-          <Plus size={18} /> Add New Product
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setPosInitialProduct(null);
+              setIsPosModalOpen(true);
+            }}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:border-blue-500 hover:text-blue-600"
+          >
+            <ShoppingCart size={18} /> Manual POS Entry
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
+          >
+            <Plus size={18} /> Add New Product
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -206,10 +221,10 @@ export default function ProductsPage() {
             <thead className="bg-gray-50 text-xs uppercase text-gray-500">
               <tr>
                 <th className="px-5 py-3.5">Product Name</th>
-                <th className="px-5 py-3.5">Selling Price</th>
-                <th className="px-5 py-3.5">Cost (COGS)</th>
-                <th className="px-5 py-3.5">Gross Profit</th>
-                <th className="px-5 py-3.5">Stock Level</th>
+                <th className="px-5 py-3.5">Category</th>
+                <th className="px-5 py-3.5">Price</th>
+                <th className="px-5 py-3.5">Cost Price</th>
+                <th className="px-5 py-3.5">Stock Count</th>
                 <th className="px-5 py-3.5">Actions</th>
               </tr>
             </thead>
@@ -218,7 +233,6 @@ export default function ProductsPage() {
                 const price = productPrice(item);
                 const cogs = productCogs(item);
                 const stock = productStock(item);
-                const profit = price - cogs;
                 const isLowStock = stock <= productLowStock(item);
 
                 return (
@@ -229,9 +243,17 @@ export default function ProductsPage() {
                         SKU: {item.sku}
                       </span>
                     </td>
+                    <td className="px-5 py-4 text-gray-600">
+                      {item.category ? (
+                        <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                          {item.category}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
                     <td className="px-5 py-4 font-medium text-gray-900">₹{price}</td>
                     <td className="px-5 py-4 text-gray-600">₹{cogs}</td>
-                    <td className="px-5 py-4 font-medium text-emerald-600">+₹{profit}</td>
                     <td className="px-5 py-4">
                       {isLowStock ? (
                         <span className="flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
@@ -245,6 +267,16 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPosInitialProduct(item);
+                            setIsPosModalOpen(true);
+                          }}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-800"
+                        >
+                          <ShoppingCart size={14} /> Sell
+                        </button>
                         <button
                           type="button"
                           onClick={() => setEditingProduct(item)}
@@ -284,6 +316,17 @@ export default function ProductsPage() {
           product={editingProduct}
           onClose={() => setEditingProduct(null)}
           onProductAdded={() => void fetchProducts()}
+        />
+      )}
+
+      {isPosModalOpen && (
+        <ManualPosEntryModal
+          initialProduct={posInitialProduct}
+          onClose={() => {
+            setIsPosModalOpen(false);
+            setPosInitialProduct(null);
+          }}
+          onStockUpdated={() => void fetchProducts()}
         />
       )}
     </div>

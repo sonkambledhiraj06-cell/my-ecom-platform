@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 import type { ImportJob, ImportJobItem, ImageAnalysisCache, ProductVideo } from "./types";
 
-const supabase = createClient();
-
 export async function createImportJob(userId: string, totalItems: number): Promise<ImportJob> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("import_jobs")
     .insert({
@@ -19,6 +18,7 @@ export async function createImportJob(userId: string, totalItems: number): Promi
 }
 
 export async function getImportJob(jobId: string): Promise<ImportJob | null> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("import_jobs")
     .select("*")
@@ -33,6 +33,7 @@ export async function updateImportJob(
   jobId: string,
   updates: Partial<ImportJob>,
 ): Promise<void> {
+  const supabase = createClient();
   const { error } = await supabase
     .from("import_jobs")
     .update({ ...updates, updated_at: new Date().toISOString() })
@@ -45,6 +46,7 @@ export async function createImportJobItem(
   jobId: string,
   item: Omit<ImportJobItem, "id" | "job_id" | "created_at" | "updated_at" | "retry_count">,
 ): Promise<ImportJobItem> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("import_job_items")
     .insert({
@@ -60,6 +62,7 @@ export async function createImportJobItem(
 }
 
 export async function getImportJobItems(jobId: string): Promise<ImportJobItem[]> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("import_job_items")
     .select("*")
@@ -74,6 +77,7 @@ export async function updateImportJobItem(
   itemId: string,
   updates: Partial<ImportJobItem>,
 ): Promise<void> {
+  const supabase = createClient();
   const { error } = await supabase
     .from("import_job_items")
     .update({ ...updates, updated_at: new Date().toISOString() })
@@ -83,6 +87,7 @@ export async function updateImportJobItem(
 }
 
 export async function incrementJobItemRetry(itemId: string): Promise<number> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("import_job_items")
     .select("retry_count")
@@ -103,6 +108,7 @@ export async function incrementJobItemRetry(itemId: string): Promise<number> {
 }
 
 export async function getImageAnalysis(contentHash: string): Promise<ImageAnalysisCache | null> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("image_analysis_cache")
     .select("*")
@@ -117,6 +123,7 @@ export async function setImageAnalysis(
   contentHash: string,
   analysis: ImageAnalysisCache["analysis"],
 ): Promise<void> {
+  const supabase = createClient();
   const { error } = await supabase
     .from("image_analysis_cache")
     .upsert({
@@ -129,6 +136,7 @@ export async function setImageAnalysis(
 }
 
 export async function createProductVideo(video: Omit<ProductVideo, "id" | "created_at" | "updated_at" | "retry_count">): Promise<ProductVideo> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("product_videos")
     .insert({ ...video, retry_count: 0 })
@@ -143,6 +151,7 @@ export async function updateProductVideo(
   videoId: string,
   updates: Partial<ProductVideo>,
 ): Promise<void> {
+  const supabase = createClient();
   const { error } = await supabase
     .from("product_videos")
     .update({ ...updates, updated_at: new Date().toISOString() })
@@ -152,6 +161,7 @@ export async function updateProductVideo(
 }
 
 export async function getProductVideos(productId: string): Promise<ProductVideo[]> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("product_videos")
     .select("*")
@@ -162,6 +172,7 @@ export async function getProductVideos(productId: string): Promise<ProductVideo[
 }
 
 export async function getQueuedVideos(limit: number = 50): Promise<ProductVideo[]> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("product_videos")
     .select("*")

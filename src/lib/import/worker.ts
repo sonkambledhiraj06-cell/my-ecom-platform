@@ -11,12 +11,12 @@ import { analyzeImageWithAI, generateMarketingContent } from "./ai-analysis";
 import { smartMatch } from "./smart-matching";
 import { generateVideoForProduct } from "./video-generation";
 
-const supabase = createWorkerClient();
 const BATCH_SIZE = 10;
 const AI_CONCURRENCY = parseInt(process.env.AI_CONCURRENCY ?? "5", 10);
 const VIDEO_CONCURRENCY_LIMIT = parseInt(process.env.VIDEO_CONCURRENCY ?? "3", 10);
 
 export async function processImportJob(jobId: string): Promise<void> {
+  const supabase = createWorkerClient();
   const job = await getImportJob(jobId);
   if (!job || job.status === "processing" || job.status === "completed") return;
 
@@ -206,6 +206,7 @@ export async function processImportJob(jobId: string): Promise<void> {
 }
 
 async function fetchExistingProducts(): Promise<Array<{ id: string; name: string; sku: string; image_url: string | null }>> {
+  const supabase = createWorkerClient();
   const { data, error } = await supabase
     .from("products")
     .select("id, name, sku, image_url")

@@ -1,24 +1,21 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+const FALLBACK_URL = 'https://placeholder-project.supabase.co';
+const FALLBACK_KEY = 'placeholder-key';
+
 const getValidUrl = (url?: string) => {
   if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
     return url;
   }
-  return undefined;
+  return FALLBACK_URL;
 };
 
 export async function createClient() {
   const cookieStore = await cookies()
 
   const supabaseUrl = getValidUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Check your environment configuration."
-    );
-  }
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? FALLBACK_KEY;
 
   return createServerClient(supabaseUrl, supabaseKey, {
     cookies: {

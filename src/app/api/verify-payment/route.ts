@@ -15,10 +15,10 @@ export async function POST(request: Request) {
       return Response.json({ error: "Missing payment verification fields" }, { status: 400 });
     }
 
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const secret = process.env.RAZORPAY_KEY_SECRET;
 
     if (secret) {
-      // Verify signature using webhook secret
+      // Verify signature using Razorpay key secret
       const generatedSignature = createHmac("sha256", secret)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest("hex");

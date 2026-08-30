@@ -18,6 +18,7 @@ interface AddProductModalProps {
     selling_price?: number | string | null;
     cost_cogs?: number | string | null;
     stock_level?: number | string | null;
+    image_url?: string | null;
   };
 }
 
@@ -32,6 +33,7 @@ export default function AddProductModal({
   const [price, setPrice] = useState(product ? String(product.selling_price ?? product.price ?? "") : "");
   const [cogs, setCogs] = useState(product ? String(product.cost_cogs ?? product.cogs ?? "") : "");
   const [stock, setStock] = useState(product ? String(product.stock_level ?? product.stock ?? "") : "");
+  const [imageUrl, setImageUrl] = useState(product?.image_url ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,6 +58,7 @@ export default function AddProductModal({
         selling_price: parsedPrice,
         cost_cogs: parsedCogs,
         stock_level: parsedStock,
+        image_url: imageUrl.trim() || null,
       };
       const { error: insertError } = product
         ? await supabase.from("products").update(productData).eq("id", product.id)
@@ -156,6 +159,13 @@ export default function AddProductModal({
             value={stock}
             onChange={(event) => setStock(event.target.value)}
             required
+            className="w-full rounded-md border p-2 text-sm outline-none focus:border-blue-500"
+          />
+          <input
+            type="url"
+            placeholder="Image URL (optional)"
+            value={imageUrl}
+            onChange={(event) => setImageUrl(event.target.value)}
             className="w-full rounded-md border p-2 text-sm outline-none focus:border-blue-500"
           />
 
